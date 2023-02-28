@@ -1,10 +1,12 @@
+#Louis DeVictoria
+# Python Dictionary to be used in j2 rendering for Mikrotik nat config
 data = { "info":[
 
 
 
-{ "private" : "10.225.5.210",
-"public" :	"50.115.233.217	" ,
-"comment" :"rsc170.gsc.webair.com" ,
+{ "private" : "<private ip>",
+"public" :	"<public ip>	" ,
+"comment" :"description" ,
 },
 ]
 }

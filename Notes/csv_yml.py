@@ -1,3 +1,5 @@
+# Louis DeVictoria
+# create a dictinonary structure frome csv
 import csv
 
 dict_from_csv = {}

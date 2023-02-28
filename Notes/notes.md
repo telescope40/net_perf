@@ -4,10 +4,12 @@ If you want to import yaml data into python
 You need to ensure the Loader is listed 
 
 import yaml
-with open('./Underlay/common.yml') as info:
+with open('./path/filename.yml') as info:
       info_dict = yaml.load(info, Loader=yaml.FullLoader)
     print(info_dict)
 
+***
+#### Load a function from directory name Underlay
 from Underlay.alldevices import data
 
 for i in data:
@@ -20,7 +22,7 @@ for i in data:
 ### csv_yml.py
 import csv
 dict_from_csv = {}
-with open('spine.csv', mode='r') as inp:
+with open('filename.csv', mode='r') as inp:
     reader = csv.reader(inp)
     headers = next(reader)[1:]
     for row in reader:
