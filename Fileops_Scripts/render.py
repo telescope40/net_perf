@@ -3,14 +3,14 @@
 
 from jinja2 import Environment, FileSystemLoader , StrictUndefined
 #Local Directory
-file_loader = FileSystemLoader('.')
+file_loader = FileSystemLoader('../Notes')
 #Load Environment
 env = Environment(loader=file_loader)
 
 #There is two templates for now , we comment out based if we need a spine of leaf config output
 ### Rack Template
 template = env.get_template('filename.j2')
-from nat import data
+from Fileops_Scripts.nat import data
 #Dictionary that contains Variables to populate the template files
 
 def render_cfg():
