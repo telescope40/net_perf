@@ -119,3 +119,15 @@ def Subnetter(prefix,change):
     subnets = list(ipaddress.ip_network(prefix).subnets(prefixlen_diff=change))
     for i in subnets:
         print(i)
+
+
+def basic_subnet_cal(prefix):
+    all_hosts = (list(ipaddress.ip_network(prefix).hosts()))
+    first_addr = all_hosts[0]
+    last_addr = all_hosts[-1]
+    broadcast = (ipaddress.ip_network(prefix).broadcast_address)
+    net_address = (ipaddress.ip_network(prefix).network_address)
+    numb_addrs = (ipaddress.ip_network(prefix).num_addresses)
+    return(f"First IP {first_addr}  Last IP {last_addr}  Avaliable IPs {numb_addrs}")
+
+

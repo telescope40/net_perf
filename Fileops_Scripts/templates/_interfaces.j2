@@ -1,0 +1,17 @@
+{% for iname , idata in interfaces.items() -%}
+{% if "loopback1" in iname %}
+interface {{iname}}
+ description {{idata.description}}
+ mtu 9216
+ ip address {{idata.ipv4}}
+{% if idata.ipv4_sec is defined %}
+ ip address {{idata.ipv4_sec}} secondary
+{% endif %}
+{% else %}
+interface {{iname}}
+ description {{idata.description}}
+ no switchport
+ mtu 9216
+ ip address {{idata.ipv4}}
+{% endif %}
+{% endfor %}

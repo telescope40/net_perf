@@ -1,0 +1,40 @@
+router bgp {{bgp_asn}}
+  router-id {{router_id}}
+  log-neighbor-changes
+  address-family ipv4 unicast
+    network  {{interfaces.loopback0.ipv4}} route-map AdvLoopback
+    network  {{interfaces.loopback1.ipv4}} route-map AdvLoopback
+    network  {{interfaces.loopback1.ipv4_sec}} route-map AdvLoopback
+  address-family l2vpn evpn
+  template peer FSW_PEERS
+    remote-as {{spine_asn}}
+    no dynamic-capability
+    timers 1 3
+    address-family ipv4 unicast
+      send-community
+      send-community extended
+      filter-list FSW in
+      route-map infra-routes in
+      soft-reconfiguration inbound always
+  template peer OVERLAY_PEERS
+    remote-as {{spine_asn}}
+    update-source loopback1
+    ebgp-multihop 5
+    timers 1 3
+    address-family ipv4 unicast
+    address-family l2vpn evpn
+      send-community
+      send-community extended
+      route-map DIA-TAG out
+  {% for iname , idata in spines.items() -%}
+  neighbor {{idata}}
+    inherit peer FSW_PEERS
+    no shutdown
+    address-family ipv4 unicast
+  {% endfor %}
+  {% for iname , idata in overlay.items() -%}
+  neighbor {{idata}}
+    inherit peer OVERLAY_PEERS
+    no shutdown
+    address-family l2vpn evpn
+  {% endfor %}
