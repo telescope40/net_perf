@@ -1,0 +1,74 @@
+hostname: rs01.site
+bgp_asn : 65201
+localpw: localpw
+router_id: 10.200.0.16
+interfaces:
+  loopback0:
+    ipv4: 10.200.0.1/32
+    description: Underlay Router ID
+  loopback1:
+    ipv4: 10.200.200.1/32
+    description: Overlay Router ID
+  mgmt0:
+    ipv4: 10.225.5.1/24
+    description: management
+  ethernet 1/49:
+    ipv4: 10.1.1.1/31
+    description: "Spine: spine1"
+  ethernet 1/51:
+    ipv4: 10.1.2.1/31
+    description: "Spine: spine2"
+mgmt_outside:
+spine_asn: 65101
+spines:
+  spine1: 10.1.1.0
+  spine2: 10.1.2.0
+
+overlay:
+  ov_spine1: 10.200.0.13
+  ov_spine2: 10.200.0.14
+
+
+dns1: 172.16.0.100
+dns2: 172.16.0.200
+snmp:
+  server: 10.225.52.100
+  snmp_usr: monitor
+  snmp_usr_pw: usrpassw0rd
+  snmp_enc_pw: encpassw0rd
+  acl: SNMP_V3
+
+syslog:
+  servers:
+    - 10.225.52.100
+tacacs:
+  host: 172.16.0.100
+  key: tackey
+acl:
+  MGMT_ACL:
+  - 10 remark mgmt access acl
+  - 20 permit ip 10.225.52.0/24 any
+  - 30  permit ip 172.16.0.0/24 any
+  NTP_PEER:
+  - 10 remark NTP Peer ACL
+  - 20 permit udp host 10.1.0.6 any eq ntp
+  - 30 permit udp host 10.1.0.1 any eq ntp
+  - 40 deny udp any any eq ntp log
+  SNMP_V3:
+  - 10 remark SNMP_ACL
+  - 20 permit ip 10.1.201.38/32 any
+  - 30 remark drop all
+feature:
+  - feature nxapi
+  - feature bgp
+  - feature bash-shell
+  - feature scp-server
+  - feature interface-vlan
+  - feature ntp
+  - feature nv overlay evpn
+  - feature fabric forwarding
+  - feature vn-segment-vlan-based
+  - feature tacacs+
+  - nv overlay evpn
+  - feature vpc
+  - feature lacp
