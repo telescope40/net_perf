@@ -1,3 +1,17 @@
+# **Understanding GIT**
+- A verison control system for distributed revision control 
+- Repository is where all code resides 
+- GIT uses a snapshot system ,not just deltas and have the full file information
+
+- Working Directory 
+  - Files Directory but untracked by GIT 
+- Index 
+  - Staging Area , files are tracked 
+- Local Repository 
+  - Holds all commited changes
+  - Stores all working history 
+
+- 
 - git init 
 	- initialize a new git repo 
 - git add files
