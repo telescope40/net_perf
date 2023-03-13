@@ -4,7 +4,7 @@ import csv
 
 dict_from_csv = {}
 
-with open('spine.csv', mode='r') as inp:
+with open('file.csv', mode='r') as inp:
     reader = csv.reader(inp)
     headers = next(reader)[1:]
     for row in reader:

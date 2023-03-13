@@ -1,5 +1,5 @@
 # **Understanding GIT**
-- A verison control system for distributed revision control 
+- A version control system for distributed revision control 
 - Repository is where all code resides 
 - GIT uses a snapshot system ,not just deltas and have the full file information
 
@@ -27,7 +27,7 @@ Adds only new and modified files to the index
 ```git branch -D boson```
 deletes a branch called boson 
 ```git init```
-crreates new empty repo 
+creates new empty repo 
 ```git clone```
 local copy of the git repo 
 ```git branch```
@@ -78,11 +78,10 @@ git rm --cached Underlay/*..yml
 
 #### **Update the remote url from SSH to HTTPS**
 git remote set-url
-git remote set-url gitlab https://gitlab.webair.com/ldevictoria/dc_fabric.git
+git remote set-url gitlab https://gitlab.example.com/something/somerepo.git
 
 git config http.postBuffer 524288000
 
-devicto@ldevictoria-gsc-mac opti9_obsidian % more .git/config 
 
 ```
 [core]

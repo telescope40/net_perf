@@ -7,10 +7,10 @@ file_loader = FileSystemLoader('.')
 #Load Environment
 env = Environment(loader=file_loader)
 import yaml
-template = env.get_template('./templates/leaf.j2')
+template = env.get_template('./templates/palo.j2')
 
 def render_cfg():
-    with open('devices/rs01.yml') as info2:
+    with open('devices/palo_fw.yml') as info2:
         device_dict = yaml.load(info2, Loader=yaml.FullLoader)
         #Opens the host device dictionary and pulls the values
         hostname = (device_dict['hostname'])
