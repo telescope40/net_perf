@@ -1,5 +1,6 @@
 # Louis DeVictoria
 import ipaddress
+import sys
 
 def basic_subnet_cal(prefix):
 	all_hosts = (list(ipaddress.ip_network(prefix).hosts()))
@@ -15,4 +16,8 @@ Last Address {last_addr},
 Broadcast {broadcast}
 Available IPs {numb_addrs}''')
 	print(result)
+
+if __name__ == "__main__":
+	prefix = sys.argv[1]
+	basic_subnet_cal(prefix)
 

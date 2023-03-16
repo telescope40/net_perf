@@ -15,7 +15,7 @@ def wholook(address):
 	descrip = details['description']
 	print({'Address': ip , "Announced By": asn , "ASN Description": asn_desc, "IP Owned": descrip })
 	final = {f'Address: {ip} ,Announced By: {asn} , ASN Description: {asn_desc}, IP Owned: {descrip}'}
-	a = open("../Txt_files/whois_post.txt", "a+")
+	a = open("../txt_files/whois_post.txt", "a+")
 	a.writelines(final)
 	a.writelines("\n")
 
@@ -30,7 +30,7 @@ def port_knock(address):
 	sock.close()
 
 if __name__ == "__main__":
-	f = open("../Txt_files/whois.txt", "r")
+	f = open("../txt_files/whois.txt", "r")
 	for x in f:
 		x = x.strip()
 		wholook(x)
