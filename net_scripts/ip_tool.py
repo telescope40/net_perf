@@ -8,18 +8,26 @@ import requests
 class loud_iptools:
 	def __init__(self, address):
 		self.address = address
-		if self._isIP() != True:
-			return ValueError()
+		if self._isIP() == True:
+			return address
+		elif self._isNet() == True:
+			return address
 
 	# Check if the address is valid
 	def _isIP(self):
 		address = self.address
 		try:
 			valid_ip = ipaddress.ip_address(address)
-			return True
+			return address
 		except:
 			return False
-
+	def _isNet(self):
+		prefix = self.address
+		try:
+			valid_net = ipaddress.ip_network(prefix)
+			return prefix
+		except:
+			return False
 
 	def _revdns(self):
 		address = self.address
@@ -62,7 +70,8 @@ class loud_iptools:
 		get_location = requests.get(url)
 		return get_location.json()
 
-	def basic_subnet_cal(prefix):
+	def basic_subnet_cal(self):
+		prefix = self.address
 		all_hosts = (list(ipaddress.ip_network(prefix).hosts()))
 		first_addr = all_hosts[0]
 		last_addr = all_hosts[-1]
