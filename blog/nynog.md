@@ -51,4 +51,7 @@ The following libraries and modules helped me create these tools
 
 
 ### GIT 
+- Discussed the basics of git and git ops 
+
+### Docker 
 

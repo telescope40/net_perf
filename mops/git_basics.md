@@ -24,34 +24,49 @@ Pulls file from another branch and merges to another
 
 ```git add --no-all```
 Adds only new and modified files to the index 
+
 ```git branch -D boson```
 deletes a branch called boson 
+
 ```git init```
 creates new empty repo 
+
 ```git clone```
 local copy of the git repo 
+
 ```git branch```
 create new development workspace for existing repo 
+
 ```git merge```
 incorporates changes between two branches
+
 ```git branch -f boson```
 reset an existing branch but not automatically switch to the branch
+
 ```git checkout -b boson```
 create a new branch and switch to that branch 
+
 ```git checkout -B boson```
 reset an *existing* branch and *switch* to the branch
+
 ```git diff```
 can be used to troubleshoot commit issues and compare code between commits 
+
 ```git diff --cached```
 compare *staged* changes between the last commit and the index 
+
 ```git diff HEAD```
 compares changes in the working directory and the last commit 
+
 ```git diff --no-index```
 compare two paths in the file syste, where at least one path is untracked by Git. 
+
 ```git add -u```
 Adds only deleted and modified files to the index 
+
 ```git add -A```
 Add New , Deleted , and modified files to the index same as ```git add --all```
+
 ```git commit -a```
 All modified and deleted files 
 
@@ -273,3 +288,7 @@ Git Remote Repos
 
 
 ```
+
+Undo Git Init 
+- rm -rf .git
+
