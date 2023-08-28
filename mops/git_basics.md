@@ -286,6 +286,9 @@ Git Remote References "remotes" An actual remote repo A reference t such a repo 
 Git Remote Repos
 -Remote Server Repos of projects -Push / Pull from -SSH/ Git / HTTPS to pull data git remote show Add Remote git remote add [shortname(handle)][url] Rename shortname git remote rename <old><new> Retrieve latest from git remote git fetch
 
+#set a new remote
+
+git remote add NEW_REMOTE
 
 ```
 

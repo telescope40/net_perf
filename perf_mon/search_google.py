@@ -11,7 +11,6 @@ def get_pub_ip():
 		return KeyError
 
 def geo_loc(ip):
-	address = ip
 	url = (f"https://ipapi.co/{ip}/json")
 	get_location = requests.get(url)
 	return get_location.json()
@@ -34,11 +33,14 @@ def search_google(api_key, cse_id, query):
 my_pubic_addr = get_pub_ip()
 where_am_i = geo_loc(my_pubic_addr)
 city = where_am_i['city']
-print(city)
+region = where_am_i['region']
+
+#You did need to create a custome Programmable search engine + API Key
+# https://programmablesearchengine.google.com/controlpanel/all
 
 API_KEY = 'AIzaSyDcBLSh58b82rNL-IGc1_c_14TxBr0nK-4'
 CSE_ID = '7073d4974aede489d'
-QUERY = (f'Best Pizza near {city}')
+QUERY = (f'Best Pizza near {city} + {region}')
 
 
 
