@@ -1,5 +1,6 @@
+#!/python
 import requests
-import ipwhois
+
 
 def get_pub_ip():
 	url = (f"http://ip.me")
@@ -22,7 +23,7 @@ def search_google(api_key, cse_id, query):
 		'q': query
 	}
 
-	response = requests.get(url, params=params)
+	response = requests.get(url, params=params, verify=False)
 
 	if response.status_code == 200:
 		return response.json()
