@@ -74,9 +74,11 @@ sleep 30s
 echo Google Search
 echo Google Search for Pizza near $CITY >> $FILENAME
 python3 ./search_google.py >> $FILENAME
+sleep 1m
+python3 ./stpar.py $SPEEDRESULTS
 
 echo Upload Results to bucket
 echo Upload Results to bucket >> $FILENAME
-curl -X PUT -T $FILENAME https://mrbucket-us-east-1.s3.amazonaws.com/$FILENAME -output finalpush
-curl -X PUT -T $SPEEDRESULTS https://mrbucket-us-east-1.s3.amazonaws.com/$SPEEDRESULTS -output finalpush
+curl -X PUT -T $FILENAME https://mrbucket-us-east-1.s3.amazonaws.com/$FILENAME
+curl -X PUT -T $SPEEDRESULTS https://mrbucket-us-east-1.s3.amazonaws.com/$SPEEDRESULTScurl
 
