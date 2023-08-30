@@ -2,11 +2,12 @@
 import json
 import sys
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def plot_http(httpjson):
 	with open(httpjson, "r") as file:
-		files = []
+		urls=[]
 		download_speeds=[]
 		download_sizes=[]
 		download_times=[]
@@ -16,26 +17,25 @@ def plot_http(httpjson):
 			dl_size = (data["size_download"])
 			dl_time = (data["total_time"])
 			url = (data["url"])
-			files.append(url)
+			urls.append(url)
 			download_speeds.append(dl_convert)
 			download_sizes.append(dl_size)
 			download_times.append(dl_time)
-		# Create bar chart
-		plt.figure(figsize=(10, 6))
-		plt.bar(download_sizes,download_times, color='blue', label='Download Size (MB)', width=0.4)
+		# Create a line graph for download sizes
+		plt.figure(figsize=(12, 7))
+		plt.plot(urls, download_sizes, color='blue', marker='o', label='Download Size (KB)')
 
-		# Create a bar chart for download times, aligning it to the right side of each file's bar
-		#plt.bar(files, download_times, color='green', label='Time to Complete (s)', width=0.4)
+		# Create a line graph for total times
+		plt.plot(urls, download_times, color='green', marker='x', label='Total Time (s)')
 
 		# Add title, labels, and legend
-		plt.title('Download Size vs. Time to Complete for Different Files')
-		plt.xlabel('Files')
+		plt.title('Download Size vs. Total Time for Different URLs')
+		plt.xlabel('URLs')
 		plt.ylabel('Size and Time')
 		plt.legend()
-
-		# Show the plot
+		plt.grid(True, which="both", ls="--", linewidth=0.5)
 		plt.tight_layout()
-		plt.show()
+
 		plt.savefig('http_graph.png', dpi=300)
 		return plt.show()
 
