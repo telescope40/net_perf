@@ -52,7 +52,7 @@ def plot_http(httpjson):
 		axs[2].set_xticklabels(urls, rotation=45)
 
 		plt.savefig('http_graph.png', dpi=300)
-		return plt.show()
+		#return plt.show()
 
 if __name__ == "__main__":
 	httpjson = sys.argv[1]

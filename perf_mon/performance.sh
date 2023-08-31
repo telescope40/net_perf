@@ -14,20 +14,23 @@
 
 echo Getting Public IP and Provider
 IP="$(curl --insecure ip.me >&1)"
-URL="https://ipapi.co/$IP/json"
-PROVIDER="$(curl --insecure $URL | jq -r ".org")"
-CITY="$(curl --insecure $URL | jq -r ".city")"
+URL="$(curl https://ipapi.co/$IP/json)"
+echo $URL >>"ip.json"
+PROVIDER="$(cat ip.json | jq -r ".org")"
+CITY="$(cat ip.json | jq -r ".city")"
+REGION="$(cat ip.json | jq -r ".region_code")"
 TIME=$(date +%m%d_%H%M )
-FILENAME="PerfResults$TIME.json"
-SPEEDRESULTS="SpeedtestReport$TIME.json"
-S3UPLOAD="s3upload$TIME.json"
-HTTPDOWNLOAD="httpdl$TIME.json"
+FILENAME="PerfResults$REGION$TIME.json"
+SPEEDRESULTS="SpeedtestReport$REGION$TIME.json"
+S3UPLOAD="s3upload$REGION$TIME.json"
+HTTPDOWNLOAD="httpdl$REGION$TIME.json"
 #WEBPAGELOAD="Pageload$TIME.json"
 #MSFILEDOWN="Msload$TIME.json"
 SPEEDIMAGE="Speedtest_Graph$TIME.png"
 echo "Public IP is: "$IP > $FILENAME
 echo "Provider: "$PROVIDER >> $FILENAME
 echo "Located in:"$CITY >> $FILENAME
+echo "Region:"$REGION >> $FILENAME
 
 echo Getting Closest Speedtest Server
 STS="$(speedtest --list | head -2 | cut -d ")" -f1)"
@@ -116,14 +119,14 @@ echo Repeat All Test 5 times
 for i in {1..5}; do
   echo Starting Cycle $i
   speedtest --json >> $SPEEDRESULTS
-  sleep 10s
-  curl --insecure https://edition.cnn.com/ --output edition.json -w "{\"http_code\": %{http_code},\"url\": \"%{url_effective}\",\"size_download\": %{size_download},\"speed_download\": %{speed_download},\"total_time\": %{time_total}}\n" >> $HTTPDOWNLOAD
-  sleep 10s
-  curl --insecure  https://gemmei.ftp.acc.umu.se/pub/gimp/gimp/v2.10/windows/gimp-2.10.32-setup-1.exe --output gimp.exe -w "{\"http_code\": %{http_code},\"url\": \"%{url_effective}\",\"size_download\": %{size_download},\"speed_download\": %{speed_download},\"total_time\": %{time_total}}\n" >> $HTTPDOWNLOAD
-  sleep 10s
-  curl -X PUT -T up250mbfile.txt https://mrbucket-us-east-1.s3.amazonaws.com/up250mbfile.txt --output up250mbfile.txt -w "{\"http_code\": %{http_code},\"url\": \"%{url_effective}\",\"size_upload\": %{size_upload},\"speed_download\": %{speed_upload},\"total_time\": %{time_total}}\n" >> $S3UPLOAD
-  sleep 10s
-  curl --insecure https://mrbucket-us-east-1.s3.amazonaws.com/s3object.txt --output s3object_us.txt -w "{\"http_code\": %{http_code},\"url\": \"%{url_effective}\",\"size_download\": %{size_download},\"speed_download\": %{speed_download},\"total_time\": %{time_total}}\n" >> $HTTPDOWNLOAD
+  #sleep 10s
+  #curl --insecure https://edition.cnn.com/ --output edition.json -w "{\"http_code\": %{http_code},\"url\": \"%{url_effective}\",\"size_download\": %{size_download},\"speed_download\": %{speed_download},\"total_time\": %{time_total}}\n" >> $HTTPDOWNLOAD
+  #sleep 10s
+  #curl --insecure  https://gemmei.ftp.acc.umu.se/pub/gimp/gimp/v2.10/windows/gimp-2.10.32-setup-1.exe --output gimp.exe -w "{\"http_code\": %{http_code},\"url\": \"%{url_effective}\",\"size_download\": %{size_download},\"speed_download\": %{speed_download},\"total_time\": %{time_total}}\n" >> $HTTPDOWNLOAD
+  #sleep 10s
+  #curl -X PUT -T up250mbfile.txt https://mrbucket-us-east-1.s3.amazonaws.com/up250mbfile.txt --output up250mbfile.txt -w "{\"http_code\": %{http_code},\"url\": \"%{url_effective}\",\"size_upload\": %{size_upload},\"speed_download\": %{speed_upload},\"total_time\": %{time_total}}\n" >> $S3UPLOAD
+  #sleep 10s
+  #curl --insecure https://mrbucket-us-east-1.s3.amazonaws.com/s3object.txt --output s3object_us.txt -w "{\"http_code\": %{http_code},\"url\": \"%{url_effective}\",\"size_download\": %{size_download},\"speed_download\": %{speed_download},\"total_time\": %{time_total}}\n" >> $HTTPDOWNLOAD
   echo Ending Cycle $i
   if [ $i -ne 5 ]; then
     sleep 1m
