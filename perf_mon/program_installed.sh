@@ -9,7 +9,7 @@ program_path=$(which $1 2>/dev/null)
 
 # Check if the program is installed
 if [ -z "$program_path" ]; then
-    echo "False"
+    echo "please install $1"
 else
     echo "$program_path"
 fi

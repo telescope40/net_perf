@@ -24,6 +24,7 @@ def plot_http(httpjson):
 		# Convert total_times to milliseconds
 		# Plot average download speeds
 		# Setup figure and subplots
+		urls = [x[8:16] for x in urls]
 		fig, axs = plt.subplots(3, 1, figsize=(10, 10))
 
 		# Bar positions

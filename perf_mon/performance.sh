@@ -6,35 +6,49 @@
 # brew install coreuitils
 # Install Speedtest
 # Install jq
-# pip3 install requests
-# pip3 install json
-# pip3 install sys
-# import matplotlib.pyplot as plt
 
 
+#Gather Basic Info
 echo Getting Public IP and Provider
 IP="$(curl --insecure ip.me >&1)"
 URL="$(curl https://ipapi.co/$IP/json)"
-echo $URL >>"ip.json"
+echo $URL > "ip.json"
 PROVIDER="$(cat ip.json | jq -r ".org")"
 CITY="$(cat ip.json | jq -r ".city")"
 REGION="$(cat ip.json | jq -r ".region_code")"
 TIME=$(date +%m%d_%H%M )
+
+# Define File Names with Region & Time Document City in Perf File
+
 FILENAME="PerfResults$REGION$TIME.json"
 SPEEDRESULTS="SpeedtestReport$REGION$TIME.json"
 S3UPLOAD="s3upload$REGION$TIME.json"
 HTTPDOWNLOAD="httpdl$REGION$TIME.json"
-#WEBPAGELOAD="Pageload$TIME.json"
-#MSFILEDOWN="Msload$TIME.json"
-SPEEDIMAGE="Speedtest_Graph$TIME.png"
+SPEEDIMAGE="Speedtest_Graph$REGION$TIME.png"
+HTTPGRAPH="Http_Graph$REGION$TIME.png"
+
+# Echo Output into File
 echo "Public IP is: "$IP > $FILENAME
 echo "Provider: "$PROVIDER >> $FILENAME
 echo "Located in:"$CITY >> $FILENAME
 echo "Region:"$REGION >> $FILENAME
 
+#Check if Speedtest is installed
+
+#Check if PIP is installed
+#apt install python3-pip --yes --force-yes
+
+#Install Python Libraries
+pip3 install -r requirements
+
+# Check if Python Scripts Exists
+echo install Python Scripts
+for url in "https://mrbucket-us-east-1.s3.amazonaws.com/python/search_google.py" "https://mrbucket-us-east-1.s3.amazonaws.com/python/stplot.py" "https://mrbucket-us-east-1.s3.amazonaws.com/python/httpplot.py"; do filename=$(basename $url); [ ! -e $filename ] && curl -O $url; done
+echo Python Files Done
+
 echo Getting Closest Speedtest Server
 STS="$(speedtest --list | head -2 | cut -d ")" -f1)"
-echo Starting Speedtest to server number $STS
+echo Starting Speedtest to server number $STS >> $FILENAME
 speedtest --simple --json >> $FILENAME
 sleep 1m
 echo Ending Speedtest
@@ -133,12 +147,14 @@ for i in {1..5}; do
   fi
 done
 
+
+
 echo Google Search for Pizza near $CITY
 echo Google Search for Pizza near $CITY >> $FILENAME
 python3 ./search_google.py >> $FILENAME
 sleep 1m
 echo Plot Speedtest into Graph
-python3 ./stpar.py $SPEEDRESULTS
+python3 ./stplot.py $SPEEDRESULTS
 sleep 1m
 python3 ./httpplot.py $HTTPDOWNLOAD
 
@@ -148,7 +164,7 @@ curl -X PUT -T $FILENAME https://mrbucket-us-east-1.s3.amazonaws.com/results/$FI
 curl -X PUT -T $SPEEDRESULTS https://mrbucket-us-east-1.s3.amazonaws.com/results/$SPEEDRESULTS
 curl -X PUT -T speedtest_graph.png https://mrbucket-us-east-1.s3.amazonaws.com/results/$SPEEDIMAGE
 curl -X PUT -T $HTTPDOWNLOAD https://mrbucket-us-east-1.s3.amazonaws.com/results/$HTTPDOWNLOAD
-curl -X PUT -T http_graph.png https://mrbucket-us-east-1.s3.amazonaws.com/results/http_graph.png
+curl -X PUT -T http_graph.png https://mrbucket-us-east-1.s3.amazonaws.com/results/$HTTPGRAPH
 
 
 echo Clean Up Directory
