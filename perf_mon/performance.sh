@@ -149,7 +149,6 @@ curl -X PUT -T http_graph.png https://mrbucket-us-east-1.s3.amazonaws.com/result
 
 
 echo Clean Up Directory
-rm $HTTPDOWNLOAD
 rm gimp.exe
 rm edition.json
 
