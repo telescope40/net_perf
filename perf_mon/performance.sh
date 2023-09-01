@@ -38,13 +38,15 @@ echo "Region:"$REGION >> $FILENAME
 #Check if PIP is installed
 #apt install python3-pip --yes --force-yes
 
-#Install Python Libraries
-pip3 install -r requirements
+
 
 # Check if Python Scripts Exists
 echo install Python Scripts
-for url in "https://mrbucket-us-east-1.s3.amazonaws.com/python/search_google.py" "https://mrbucket-us-east-1.s3.amazonaws.com/python/stplot.py" "https://mrbucket-us-east-1.s3.amazonaws.com/python/httpplot.py"; do filename=$(basename $url); [ ! -e $filename ] && curl -O $url; done
+for url in "https://mrbucket-us-east-1.s3.amazonaws.com/python/search_google.py" "https://mrbucket-us-east-1.s3.amazonaws.com/python/stplot.py" "https://mrbucket-us-east-1.s3.amazonaws.com/python/httpplot.py" "https://mrbucket-us-east-1.s3.amazonaws.com/python/requirements"; do filename=$(basename $url); [ ! -e $filename ] && curl -O $url; done
 echo Python Files Done
+
+#Install Python Libraries
+pip3 install -r requirements
 
 echo Getting Closest Speedtest Server
 STS="$(speedtest --list | head -2 | cut -d ")" -f1)"
@@ -133,14 +135,14 @@ echo Repeat All Test 5 times
 for i in {1..5}; do
   echo Starting Cycle $i
   speedtest --json >> $SPEEDRESULTS
-  #sleep 10s
-  #curl --insecure https://edition.cnn.com/ --output edition.json -w "{\"http_code\": %{http_code},\"url\": \"%{url_effective}\",\"size_download\": %{size_download},\"speed_download\": %{speed_download},\"total_time\": %{time_total}}\n" >> $HTTPDOWNLOAD
-  #sleep 10s
-  #curl --insecure  https://gemmei.ftp.acc.umu.se/pub/gimp/gimp/v2.10/windows/gimp-2.10.32-setup-1.exe --output gimp.exe -w "{\"http_code\": %{http_code},\"url\": \"%{url_effective}\",\"size_download\": %{size_download},\"speed_download\": %{speed_download},\"total_time\": %{time_total}}\n" >> $HTTPDOWNLOAD
-  #sleep 10s
-  #curl -X PUT -T up250mbfile.txt https://mrbucket-us-east-1.s3.amazonaws.com/up250mbfile.txt --output up250mbfile.txt -w "{\"http_code\": %{http_code},\"url\": \"%{url_effective}\",\"size_upload\": %{size_upload},\"speed_download\": %{speed_upload},\"total_time\": %{time_total}}\n" >> $S3UPLOAD
-  #sleep 10s
-  #curl --insecure https://mrbucket-us-east-1.s3.amazonaws.com/s3object.txt --output s3object_us.txt -w "{\"http_code\": %{http_code},\"url\": \"%{url_effective}\",\"size_download\": %{size_download},\"speed_download\": %{speed_download},\"total_time\": %{time_total}}\n" >> $HTTPDOWNLOAD
+  sleep 10s
+  curl --insecure https://edition.cnn.com/ --output edition.json -w "{\"http_code\": %{http_code},\"url\": \"%{url_effective}\",\"size_download\": %{size_download},\"speed_download\": %{speed_download},\"total_time\": %{time_total}}\n" >> $HTTPDOWNLOAD
+  sleep 10s
+  curl --insecure  https://gemmei.ftp.acc.umu.se/pub/gimp/gimp/v2.10/windows/gimp-2.10.32-setup-1.exe --output gimp.exe -w "{\"http_code\": %{http_code},\"url\": \"%{url_effective}\",\"size_download\": %{size_download},\"speed_download\": %{speed_download},\"total_time\": %{time_total}}\n" >> $HTTPDOWNLOAD
+  sleep 10s
+  curl -X PUT -T up250mbfile.txt https://mrbucket-us-east-1.s3.amazonaws.com/up250mbfile.txt --output up250mbfile.txt -w "{\"http_code\": %{http_code},\"url\": \"%{url_effective}\",\"size_upload\": %{size_upload},\"speed_download\": %{speed_upload},\"total_time\": %{time_total}}\n" >> $S3UPLOAD
+  sleep 10s
+  curl --insecure https://mrbucket-us-east-1.s3.amazonaws.com/s3object.txt --output s3object_us.txt -w "{\"http_code\": %{http_code},\"url\": \"%{url_effective}\",\"size_download\": %{size_download},\"speed_download\": %{speed_download},\"total_time\": %{time_total}}\n" >> $HTTPDOWNLOAD
   echo Ending Cycle $i
   if [ $i -ne 5 ]; then
     sleep 1m
