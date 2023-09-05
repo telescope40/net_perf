@@ -1,9 +1,6 @@
 #!/python
 import json
 import sys
-import matplotlib.pyplot as plt
-import numpy as np
-
 
 def plot_httpstat(httpjson):
 	with open(httpjson, "r") as file:
