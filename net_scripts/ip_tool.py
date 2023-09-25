@@ -82,3 +82,11 @@ class loud_iptools:
 		              Last IP {last_addr},  
 		              Avaliable IPs {numb_addrs}''')
 
+	def convert_bytes(number):
+		#number is bytes#
+		number = float(number)
+		bits = number * 8
+		kbits = bits / 1000
+		mbits = kbits / 1000
+		results = (f" {bits} bps | {kbits} kbps | {mbits} mbps ")
+		return results

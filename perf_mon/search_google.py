@@ -41,7 +41,7 @@ region = where_am_i['region']
 
 API_KEY = 'AIzaSyDcBLSh58b82rNL-IGc1_c_14TxBr0nK-4'
 CSE_ID = '7073d4974aede489d'
-QUERY = (f'Best Pizza near {city} + {region}')
+QUERY = (f'Closest Pizza near {city} + ,{region}')
 
 
 
