@@ -1,6 +1,7 @@
+# Louis DeVictoria
 #!/python
 import requests
-
+from config.config import google_api , google_cse_id
 
 def get_pub_ip():
 	url = (f"http://ip.me")
@@ -11,10 +12,12 @@ def get_pub_ip():
 	else:
 		return KeyError
 
+#Get my Public IP Address
 def geo_loc(ip):
 	url = (f"https://ipapi.co/{ip}/json")
 	get_location = requests.get(url)
 	return get_location.json()
+#Create Google Search Function
 def search_google(api_key, cse_id, query):
 	url = "https://www.googleapis.com/customsearch/v1"
 	params = {
@@ -30,7 +33,7 @@ def search_google(api_key, cse_id, query):
 	else:
 		return None
 
-
+# Use Public IP Info to determine Geographic Specifics
 my_pubic_addr = get_pub_ip()
 where_am_i = geo_loc(my_pubic_addr)
 city = where_am_i['city']
@@ -39,10 +42,9 @@ region = where_am_i['region']
 #You did need to create a custome Programmable search engine + API Key
 # https://programmablesearchengine.google.com/controlpanel/all
 
-API_KEY = 'AIzaSyDcBLSh58b82rNL-IGc1_c_14TxBr0nK-4'
-CSE_ID = '7073d4974aede489d'
+API_KEY = google_api
+CSE_ID = google_cse_id
 QUERY = (f'Closest Pizza near {city} + ,{region}')
-
 
 
 

@@ -2,6 +2,8 @@
 #Louis DeVictoria
 import requests
 from shodan import Shodan
+from config import config
+
 
 def get_pub_ip():
 	url = (f"http://ip.me")
@@ -15,7 +17,7 @@ def get_pub_ip():
 ip = get_pub_ip()
 print(ip)
 
-api = Shodan('amz2wPPt2czr1YE43mpxf7V13ovYJdwY')
+api = Shodan(config.api_sh)
 
 # Lookup an IP
 ipinfo = api.host(ip)

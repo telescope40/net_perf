@@ -5,14 +5,12 @@ import json
 from datetime import datetime
 
 
-#all_servers = ["dallas.testmy.net","co3.testmy.net","fl.testmy.net","ny.testmy.net","sf.testmy.net","lax.testmy.net","toronto.testmy.net","uk.testmy.net","de.testmy.net","jp.testmy.net","sg.testmy.net","in.testmy.net","au.testmy.net","google.com","cloudflare.com","amazon.com"]
-all_servers =["192.168.28.20","172.17.0.28"]
+all_servers = ["dallas.testmy.net","co3.testmy.net","fl.testmy.net","ny.testmy.net","sf.testmy.net","lax.testmy.net","toronto.testmy.net","uk.testmy.net","de.testmy.net","jp.testmy.net","sg.testmy.net","in.testmy.net","au.testmy.net","google.com","cloudflare.com","amazon.com"]
+#all_servers =["192.168.28.20","172.17.0.28"]
 #all_servers = ["3.78.89.137", "52.201.243.188"]
 def ping_host(host):
-
 	# For UNIX & Linux
 	command = ['ping', '-c', '100', host]
-
 	return subprocess.run(command, capture_output=True, text=True).stdout
 
 
