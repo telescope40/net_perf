@@ -1,13 +1,18 @@
 # Louis DeVictoria
 #!/python
+# Performance Measurement Script
+
 import requests
 from config.config import google_api , google_cse_id
+import concurrent.futures
 import subprocess
 import json
 from datetime import datetime
 import geoip2.database
 from netutils import dns
 from haversine import haversine, Unit
+from perf_mon.stplot import plot_speedtest
+import os
 
 # Basic Ping Function
 def ping_host(host):
@@ -108,8 +113,10 @@ def result_google(city,region):
 	if results:
 		for item in results['items']:
 			final.append((item['title'], item['link']))
+		print(final)
 		return final
 	else:
+		print("Error fetching results")
 		return ("Error fetching results")
 
 
@@ -117,7 +124,6 @@ def result_google(city,region):
 def servers_gps():
 	sourceFile = "../config/ping_servers.json"
 	server_list=[]
-
 	with open(sourceFile, "r") as reader:
 		all_servers = json.load(reader)
 		for server in all_servers:
@@ -147,33 +153,45 @@ def servers_distance(gps_coordinates):
 	with open(filename, "r") as json_file:
 		data = json.load(json_file)
 		for i in range(len(data)):
-			remote = (data[i]["gps_location"])
-			distance = haversine(local, remote)
-			print(distance)
-
+			try:
+				server = (data[i]["server_name"])
+				remote = (data[i]["gps_location"])
+				distance = haversine(local, remote)
+				print(f"My distnace to {server} is {distance} KMs")
+			except Exception as e:
+				print(f"Error processing server {i}: {e}")
+				continue
 
 def ping_pong():
 	sourceFile = "../config/ping_servers.json"
 	with open(sourceFile, "r") as reader:
 		all_servers = json.load(reader)
+		filename = "latency_results.json"
 		for server in all_servers:
-			filename = "latency_results.json"
-			host = server
-			response = ping_host(host)
-			parsed_response = parse_ping_output(response)
-			print(parsed_response)
-			json_output = json.dumps(parsed_response, indent=4)
-		with open(filename, "w+") as json_file:
-			json_file.write(json_output + "," + "\n")
-		return filename
+			try:
+				host = server
+				response = ping_host(host)
+				parsed_response = parse_ping_output(response)
+				print(parsed_response)
+				json_output = json.dumps(parsed_response, indent=4)
+				with open(filename, "a+") as json_file:
+					json_file.write(json_output + "," + "\n")
+					#return(json_output)
+			except Exception as e:
+				print(f"Error processing server {server}: {e}")
+				continue
+
+	return filename
 
 
 # Speedtest Python
 def run_speedtest():
 	try:
 		st_result = os.system("speedtest --simple --json")
+		print(st_result)
 		return(st_result)
 	except Exception as e:
+		print(f"An error occurred: {e}")
 		return(f"An error occurred: {e}")
 
 
@@ -191,8 +209,12 @@ def main():
 # Get Distances between my local IP and the servers
 	servers_distance(gps_coordinates)
 
+# Plot Tests
+	#pingplot()
+
 #Obtain GeoLocation on IP
 	where_am_i = geo_loc(my_pubic_addr)
+
 # City & Region
 	city = where_am_i['city']
 	region = where_am_i['region']
@@ -200,12 +222,11 @@ def main():
 # Run Google Query
 	result_google(city, region)
 
-# Run Ping Testing
-	ping_pong()
-
 # Run Speedtest
 	run_speedtest()
 
+# Run Ping Testing
+	ping_pong()
 
 if __name__ == "__main__":
 	main()
