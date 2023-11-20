@@ -4,20 +4,19 @@
 
 import requests
 from config.config import google_api , google_cse_id
-import concurrent.futures
 import subprocess
 import json
 from datetime import datetime
 import geoip2.database
 from netutils import dns
 from haversine import haversine, Unit
-from perf_mon.stplot import plot_speedtest
 import os
+import pandas as pd
 
 # Basic Ping Function
 def ping_host(host):
 	# For UNIX & Linux
-	command = ['ping', '-c', '10', host]
+	command = ['ping', '-c', '5', host]
 	return subprocess.run(command, capture_output=True, text=True).stdout
 
 
@@ -33,40 +32,52 @@ def gps_location(address):
 def parse_ping_output(output):
 	time = datetime.now().isoformat()
 	lines = output.splitlines()
-	results = {
-		'time': time,
-		'host': None,
-		'packets_transmitted': None,
-		'packets_received': None,
-		'packet_loss': None,
-		'round-trip': None,
-		'stddev': None,
-		'percent': None,
-		'max': None,
-		'min': None
+	data = {
+		#'time': [],
+		'host': [],
+		#'packets_transmitted': [],
+		#'packets_received': [],
+		'packet_loss': [],
+		'round_trip_avg': [],
+		'stddev': [],
+		#'percent': [],
+		'max': [],
+		'min': []
 	}
 
 	for line in lines:
 		if "PING" in line:
-			results['host'] = line.split()[1]
+			host = line.split()[1]
 		elif "packets transmitted" in line:
-			data = line.split(',')
-			results['packets_transmitted'] = float(data[0].split()[0])
-			results['packets_received'] = float(data[1].split()[0])
-			results['packet_loss'] = data[2].split()[0]
+			packet_info = line.split(',')
+			packets_transmitted = float(packet_info[0].split()[0])
+			packets_received = float(packet_info[1].split()[0])
+			packet_loss = packet_info[2].split()[0]
 		elif "round-trip" in line:
-			data = line.split("/")
-			results['min'] = float(data[3].split("=")[1])
-			results['round-trip'] = float(data[4])
-			rtt = float(data[4])
-			std = float(data[6].split()[0])
-			results['max'] = float(data[5])
-			results['stddev'] = float(data[6].split()[0])
-			perc = float((std/rtt) * 100)
-			perc = round(perc ,1)
-			results['percent'] = perc
-			print(f"{rtt} ms Average | {perc}% deviation ({std}ms)")
-	return results
+			rtt_info = line.split("/")
+			min_rtt = float(rtt_info[3].split("=")[1])
+			avg_rtt = float(rtt_info[4])
+			max_rtt = float(rtt_info[5])
+			stddev = float(rtt_info[6].split()[0])
+			percent = round((stddev / avg_rtt) * 100, 1)
+
+			# Append to data
+			#data['time'].append(time)
+			data['host'].append(host)
+			#data['packets_transmitted'].append(packets_transmitted)
+			#data['packets_received'].append(packets_received)
+			data['packet_loss'].append(packet_loss)
+			data['round_trip_avg'].append(avg_rtt)
+			data['stddev'].append(stddev)
+			#data['percent'].append(percent)
+			data['max'].append(max_rtt)
+			data['min'].append(min_rtt)
+
+	# Create DataFrame
+	df = pd.DataFrame(data)
+	#df = pd.DataFrame.from_dict(data, orient='index')
+	return df
+
 
 # API IP Query
 def get_pub_ip():
@@ -113,6 +124,7 @@ def result_google(city,region):
 	if results:
 		for item in results['items']:
 			final.append((item['title'], item['link']))
+		final = pd.DataFrame(final)
 		print(final)
 		return final
 	else:
@@ -121,112 +133,105 @@ def result_google(city,region):
 
 
 # Server IPs to GPS Mapping
-def servers_gps():
+def servers_main(my_pubic_addr):
 	sourceFile = "../config/ping_servers.json"
-	server_list=[]
+	filename = "latency_results.csv"
+	jsonfile = "latency_results.json"
+	local = gps_location(my_pubic_addr)
+
+	server_dict = {
+		'server_name': [], #server,
+		'ip_address': [], #host_2_ip,
+		#'gps_location': [], #gps_host
+		"distance": [], # Distance to me
+		'ping':[]
+	}
 	with open(sourceFile, "r") as reader:
 		all_servers = json.load(reader)
 		for server in all_servers:
 			try:
+
+			# Resolve FQDN to IP
 				host_2_ip = dns.fqdn_to_ip(server)
+
+			#Resolve GPS Coordinates
 				gps_host = gps_location(host_2_ip)
-				#server_dict[server] = [host_2_ip,gps_host]
-				server_dict = {
-					"server_name": server,
-					"ip_address": host_2_ip,
-					"gps_location": gps_host
-				}
-				server_list.append(server_dict)
-				gps_output = json.dumps(server_list, indent=4)
-			except Exception as e:
-				print(f"Error processing server {server}: {e}")
 
-		filename = "gps_results.json"
-		with open(filename, "w+") as json_file:
-			json_file.write(gps_output + "\n")
-		return filename
+			#Distance from User to Server
+				remote = gps_host
+				kilos = round(haversine(local,remote))
+				kilos = (f"{kilos} Kilometers")
 
-# Get Distnace between Server
-def servers_distance(gps_coordinates):
-	local = gps_coordinates
-	filename = "gps_results.json"
-	with open(filename, "r") as json_file:
-		data = json.load(json_file)
-		for i in range(len(data)):
-			try:
-				server = (data[i]["server_name"])
-				remote = (data[i]["gps_location"])
-				distance = haversine(local, remote)
-				print(f"My distnace to {server} is {distance} KMs")
-			except Exception as e:
-				print(f"Error processing server {i}: {e}")
-				continue
-
-def ping_pong():
-	sourceFile = "../config/ping_servers.json"
-	with open(sourceFile, "r") as reader:
-		all_servers = json.load(reader)
-		filename = "latency_results.json"
-		for server in all_servers:
-			try:
-				host = server
-				response = ping_host(host)
+			# ICMP Testing
+				response = ping_host(server)
 				parsed_response = parse_ping_output(response)
 				print(parsed_response)
-				json_output = json.dumps(parsed_response, indent=4)
-				with open(filename, "a+") as json_file:
-					json_file.write(json_output + "," + "\n")
-					#return(json_output)
+
+			# Create the DataStructure
+				server_dict['server_name'].append(server)
+				server_dict['ip_address'].append(host_2_ip)
+				#server_dict['gps_location'].append(gps_host)
+				server_dict['distance'].append(kilos)
+				server_dict['ping'].append(parsed_response)
+
 			except Exception as e:
 				print(f"Error processing server {server}: {e}")
-				continue
 
-	return filename
+		# Perform Distance Calculation
+		df = pd.DataFrame(server_dict)
+		print(df)
+		df.to_csv(filename, mode='w+', header=True, index=False)
+
+		df.to_json(jsonfile, orient='records', lines=True)
+
+		return df
 
 
 # Speedtest Python
 def run_speedtest():
 	try:
-		st_result = os.system("speedtest --simple --json")
-		print(st_result)
-		return(st_result)
+		st_result = os.system("speedtest --simple --csv")
+		df = pd.DataFrame(st_result)
+		print(df)
+		df.to_json(jsonfile, orient='records', lines=True)
+		return(df)
 	except Exception as e:
 		print(f"An error occurred: {e}")
 		return(f"An error occurred: {e}")
 
 
 def main():
+
 # Use Public IP Info to determine Geographic Specifics
 	my_pubic_addr = get_pub_ip()
 
 # Get GPS of myIP
-	gps_coordinates = gps_location(my_pubic_addr)
-	print(gps_coordinates)
+	#gps_coordinates = gps_location(my_pubic_addr)
 
-#Get Servers GPS
-	#servers_gps()
+#Servers , Get List from Config , DNS Lookup , PING
+	servers_main(my_pubic_addr)
 
 # Get Distances between my local IP and the servers
-	servers_distance(gps_coordinates)
+	#servers_distance(gps_coordinates)
 
 # Plot Tests
 	#pingplot()
 
 #Obtain GeoLocation on IP
-	where_am_i = geo_loc(my_pubic_addr)
+	#where_am_i = geo_loc(my_pubic_addr)
 
 # City & Region
-	city = where_am_i['city']
-	region = where_am_i['region']
+	#city = where_am_i['city']
+	#region = where_am_i['region']
 
 # Run Google Query
-	result_google(city, region)
+	#result_google(city, region)
 
-# Run Speedtest
+
 	run_speedtest()
 
 # Run Ping Testing
-	ping_pong()
+
 
 if __name__ == "__main__":
 	main()
