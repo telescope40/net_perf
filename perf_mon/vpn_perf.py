@@ -197,7 +197,7 @@ def icmp_main(my_pubic_addr):
 
 		# Format the Dictionary to Pandas DataFrame
 		df = pd.DataFrame(server_dict)
-		#df.to_csv(filename, mode='w+', header=True, index=False)
+		df.to_csv(filename, mode='w+', header=True, index=False)
 
 		df.to_json(jsonfile, orient='records', lines=True)
 		#Plot the Results
@@ -217,7 +217,8 @@ def run_speedtest():
 
 
 def web_load():
-	jsonfile = "website.json"
+	filename = "results/website.csv"
+	jsonfile = "results/website.json"
 	all_sites = ['http://edition.cnn.com','http://www.cloudflare.com','http://www.github.com']
 	# Log details
 	log_details = {
@@ -247,6 +248,10 @@ def web_load():
 	# Format the Dictionary to Pandas DataFrame
 	print(log_details)
 	df = pd.DataFrame(log_details)
+	#create csv
+	df.to_csv(filename, mode='w+', header=True, index=False)
+
+	#Create json file
 	df.to_json(jsonfile, orient='records', lines=True)
 	# Create the Graph
 	plot_http()
