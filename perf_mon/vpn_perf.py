@@ -12,6 +12,7 @@ from netutils import dns
 from haversine import haversine, Unit
 import os
 import pandas as pd
+import time
 
 # Basic Ping Function
 def ping_host(host):
@@ -133,16 +134,15 @@ def result_google(city,region):
 
 
 # Server IPs to GPS Mapping
-def servers_main(my_pubic_addr):
+def icmp_main(my_pubic_addr):
 	sourceFile = "../config/ping_servers.json"
-	filename = "latency_results.csv"
+	filename = "results/latency_results.csv"
 	jsonfile = "latency_results.json"
 	local = gps_location(my_pubic_addr)
 
 	server_dict = {
 		'server_name': [], #server,
 		'ip_address': [], #host_2_ip,
-		#'gps_location': [], #gps_host
 		"distance": [], # Distance to me
 		'ping':[]
 	}
@@ -170,46 +170,81 @@ def servers_main(my_pubic_addr):
 			# Create the DataStructure
 				server_dict['server_name'].append(server)
 				server_dict['ip_address'].append(host_2_ip)
-				#server_dict['gps_location'].append(gps_host)
 				server_dict['distance'].append(kilos)
 				server_dict['ping'].append(parsed_response)
 
 			except Exception as e:
 				print(f"Error processing server {server}: {e}")
 
-		# Perform Distance Calculation
+		# Format the Dictionary to Pandas DataFrame
 		df = pd.DataFrame(server_dict)
-		print(df)
-		df.to_csv(filename, mode='w+', header=True, index=False)
-
+		#df.to_csv(filename, mode='w+', header=True, index=False)
 		df.to_json(jsonfile, orient='records', lines=True)
-
+		# Return the DataFrame
 		return df
 
 
 # Speedtest Python
 def run_speedtest():
 	try:
-		st_result = os.system("speedtest --simple --csv")
-		df = pd.DataFrame(st_result)
-		print(df)
-		df.to_json(jsonfile, orient='records', lines=True)
-		return(df)
+		st_result = os.system("speedtest --simple --json")
+		print(st_result)
+		return(st_result)
 	except Exception as e:
-		print(f"An error occurred: {e}")
 		return(f"An error occurred: {e}")
 
+
+def web_load():
+	jsonfile = "website.json"
+	all_sites = ['http://edition.cnn.com','http://www.cloudflare.com','http://www.github.com']
+	# Log details
+	log_details = {
+		"http_code": [],#response.status_code,
+		"url": [],#response.url,
+		"size_download": [],#len(response.content),
+		"speed_download": [],#len(response.content) / (end_time - start_time),
+		"total_time": [],#end_time - start_time
+	}
+	for url in all_sites:
+		try:
+			# Making the request
+			start_time = time.time()
+			response = requests.get(url, verify=False)  # `verify=False` is used for insecure requests
+			end_time = time.time()
+
+			# Log details
+			log_details["http_code"].append(response.status_code)
+			log_details["url"].append(response.url)
+			log_details["size_download"].append(len(response.content))
+			log_details["speed_download"].append(len(response.content) / (end_time - start_time))
+			log_details["total_time"].append(end_time - start_time)
+
+		except Exception as e:
+			return (f"An error occurred: {e}")
+
+	# Format the Dictionary to Pandas DataFrame
+	print(log_details)
+	df = pd.DataFrame(log_details)
+	df.to_json(jsonfile, orient='records', lines=True)
+	# Return the DataFrame
+	return df
 
 def main():
 
 # Use Public IP Info to determine Geographic Specifics
 	my_pubic_addr = get_pub_ip()
 
+# Perform Speedtest CLI
+	run_speedtest()
+
+# Perform Webpage Transaction Loads
+	web_load()
+
 # Get GPS of myIP
 	#gps_coordinates = gps_location(my_pubic_addr)
 
 #Servers , Get List from Config , DNS Lookup , PING
-	servers_main(my_pubic_addr)
+	#icmp_main(my_pubic_addr)
 
 # Get Distances between my local IP and the servers
 	#servers_distance(gps_coordinates)
@@ -228,7 +263,6 @@ def main():
 	#result_google(city, region)
 
 
-	run_speedtest()
 
 # Run Ping Testing
 

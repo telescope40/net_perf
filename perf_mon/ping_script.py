@@ -59,6 +59,6 @@ if __name__ == "__main__":
 		response = ping_host(host)
 		parsed_response = parse_ping_output(response)
 		json_output = json.dumps(parsed_response, indent=4)
-		with open("latency_results.json", "a") as json_file:
+		with open("results/latency_results.json", "a") as json_file:
 			json_file.write(json_output + "," + "\n")
 
