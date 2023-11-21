@@ -200,6 +200,9 @@ def icmp_main(my_pubic_addr):
 		#df.to_csv(filename, mode='w+', header=True, index=False)
 
 		df.to_json(jsonfile, orient='records', lines=True)
+		#Plot the Results
+		plot_ping()
+
 		# Return the DataFrame
 		return df
 
@@ -245,6 +248,8 @@ def web_load():
 	print(log_details)
 	df = pd.DataFrame(log_details)
 	df.to_json(jsonfile, orient='records', lines=True)
+	# Create the Graph
+	plot_http()
 	# Return the DataFrame
 	return df
 
@@ -308,10 +313,10 @@ def main():
 	my_pubic_addr = get_pub_ip()
 
 # Perform Speedtest CLI
-	#run_speedtest()
+	run_speedtest()
 
 # Perform Webpage Transaction Loads
-	#web_load()
+	web_load()
 
 #Servers , Get List from Config , DNS Lookup , PING
 	icmp_main(my_pubic_addr)
