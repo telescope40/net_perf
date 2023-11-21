@@ -2,17 +2,23 @@
 #!/python
 # Performance Measurement Script
 
-import requests
+#Import Sensative Info
 from config.config import google_api , google_cse_id
-import subprocess
+# Import other Libraries
+import os
+import time
 import json
-from datetime import datetime
+import requests
+import subprocess
 import geoip2.database
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from datetime import datetime
 from netutils import dns
 from haversine import haversine, Unit
-import os
-import pandas as pd
-import time
+
+
 
 # Basic Ping Function
 def ping_host(host):
@@ -114,7 +120,7 @@ def search_google(api_key, cse_id, query):
 		return None
 
 def result_google(city,region):
-	# You did need to create a custome Programmable search engine + API Key
+	# You did need to create a custom Programmable search engine + API Key
 	# https://programmablesearchengine.google.com/controlpanel/all
 	API_KEY = google_api
 	CSE_ID = google_cse_id
@@ -144,7 +150,15 @@ def icmp_main(my_pubic_addr):
 		'server_name': [], #server,
 		'ip_address': [], #host_2_ip,
 		"distance": [], # Distance to me
-		'ping':[]
+		#'ping':[],
+		'packet_loss':[],
+		'round_trip_avg':[],
+		'stddev':[],
+		'max':[],
+		'min':[]
+
+
+
 	}
 	with open(sourceFile, "r") as reader:
 		all_servers = json.load(reader)
@@ -160,7 +174,7 @@ def icmp_main(my_pubic_addr):
 			#Distance from User to Server
 				remote = gps_host
 				kilos = round(haversine(local,remote))
-				kilos = (f"{kilos} Kilometers")
+				#kilos = (f"{kilos} Kilometers")
 
 			# ICMP Testing
 				response = ping_host(server)
@@ -171,7 +185,12 @@ def icmp_main(my_pubic_addr):
 				server_dict['server_name'].append(server)
 				server_dict['ip_address'].append(host_2_ip)
 				server_dict['distance'].append(kilos)
-				server_dict['ping'].append(parsed_response)
+				server_dict['packet_loss'].append(parsed_response['packet_loss'])
+				server_dict['round_trip_avg'].append(parsed_response['round_trip_avg'])
+				server_dict['stddev'].append(parsed_response['stddev'])
+				server_dict['max'].append(parsed_response['max'])
+				server_dict['min'].append(parsed_response['min'])
+				#server_dict['ping'].append(parsed_response)
 
 			except Exception as e:
 				print(f"Error processing server {server}: {e}")
@@ -179,6 +198,7 @@ def icmp_main(my_pubic_addr):
 		# Format the Dictionary to Pandas DataFrame
 		df = pd.DataFrame(server_dict)
 		#df.to_csv(filename, mode='w+', header=True, index=False)
+
 		df.to_json(jsonfile, orient='records', lines=True)
 		# Return the DataFrame
 		return df
@@ -187,8 +207,7 @@ def icmp_main(my_pubic_addr):
 # Speedtest Python
 def run_speedtest():
 	try:
-		st_result = os.system("speedtest --simple --json")
-		print(st_result)
+		st_result = os.system("speedtest --json")
 		return(st_result)
 	except Exception as e:
 		return(f"An error occurred: {e}")
@@ -199,11 +218,11 @@ def web_load():
 	all_sites = ['http://edition.cnn.com','http://www.cloudflare.com','http://www.github.com']
 	# Log details
 	log_details = {
-		"http_code": [],#response.status_code,
-		"url": [],#response.url,
-		"size_download": [],#len(response.content),
-		"speed_download": [],#len(response.content) / (end_time - start_time),
-		"total_time": [],#end_time - start_time
+		"http_code": [],       #response.status_code,
+		"url": [],             #response.url,
+		"size_download": [],   #len(response.content),
+		"speed_download": [],  #len(response.content) / (end_time - start_time),
+		"total_time": [],      #end_time - start_time
 	}
 	for url in all_sites:
 		try:
@@ -229,29 +248,76 @@ def web_load():
 	# Return the DataFrame
 	return df
 
+
+def plot_ping():
+	# Read the JSON file
+	file_path = 'latency_results.json'  # Replace with your file path
+	data = pd.read_json(file_path, lines=True)
+
+	# Extract round_trip_avg as it's nested in a list
+	data['round_trip_avg'] = data['round_trip_avg'].apply(lambda x: x[0] if x else None)
+
+	# Sort the DataFrame based on 'distance'
+	data_sorted = data.sort_values(by='distance')
+
+	# Create the bar chart
+	plt.figure(figsize=(12, 6))  # Adjust the figure size as needed
+	plt.bar(data_sorted['server_name'], data_sorted['round_trip_avg'], color='skyblue')
+
+	# Add labels and title
+	plt.xlabel('Server Name')
+	plt.ylabel('Round Trip Average (ms)')
+	plt.title('Round Trip Average by Server Name Sorted by Distance')
+	plt.xticks(rotation=45)  # Rotate the X-axis labels for better readability
+
+	# Show the plot
+	plt.tight_layout()
+	plt.savefig('ping_graph.png', dpi=300)
+	plt.show()
+
+
+def plot_http():
+	# Read the JSON file
+	file_path = 'website.json'  # Replace with your file path
+	data = pd.read_json(file_path, lines=True)
+
+	# Extract round_trip_avg as it's nested in a list
+	#data['round_trip_avg'] = data['round_trip_avg'].apply(lambda x: x[0] if x else None)
+
+	# Sort the DataFrame based on 'distance'
+	data_sorted = data.sort_values(by='total_time')
+
+	# Create the bar chart
+	plt.figure(figsize=(12, 6))  # Adjust the figure size as needed
+	plt.bar(data_sorted['url'], data_sorted['speed_download'], color='skyblue')
+
+	# Add labels and title
+	plt.xlabel('Site')
+	plt.ylabel('Speed Download (ms)')
+	plt.title('Download Speed by Site Sorted by total time')
+	plt.xticks(rotation=45)  # Rotate the X-axis labels for better readability
+
+	# Show the plot
+	plt.tight_layout()
+	plt.savefig('ping_graph.png', dpi=300)
+	plt.show()
+
 def main():
 
-# Use Public IP Info to determine Geographic Specifics
+# Get Public IP Address
 	my_pubic_addr = get_pub_ip()
 
 # Perform Speedtest CLI
-	run_speedtest()
+	#run_speedtest()
 
 # Perform Webpage Transaction Loads
-	web_load()
-
-# Get GPS of myIP
-	#gps_coordinates = gps_location(my_pubic_addr)
+	#web_load()
 
 #Servers , Get List from Config , DNS Lookup , PING
-	#icmp_main(my_pubic_addr)
+	icmp_main(my_pubic_addr)
 
-# Get Distances between my local IP and the servers
-	#servers_distance(gps_coordinates)
-
-# Plot Tests
-	#pingplot()
-
+#Plot the Results
+	#plot_ping()
 #Obtain GeoLocation on IP
 	#where_am_i = geo_loc(my_pubic_addr)
 
@@ -260,11 +326,11 @@ def main():
 	#region = where_am_i['region']
 
 # Run Google Query
-	#result_google(city, region)
+#	result_google(city, region)
 
+# Plot Tests
+	#pingplot()
 
-
-# Run Ping Testing
 
 
 if __name__ == "__main__":

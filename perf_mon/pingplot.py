@@ -2,7 +2,7 @@ import json
 import matplotlib.pyplot as plt
 from geopy.distance import geodesic
 
-def pingplot():
+def ping_plot():
     # Read ping test results from the JSON file
     with open("results/latency_results.json", "r") as json_file:
         ping_results = json.load(json_file)
