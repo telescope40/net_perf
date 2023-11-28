@@ -122,17 +122,19 @@ def search_google(api_key, cse_id, query):
 def result_google(city,region):
 	# You did need to create a custom Programmable search engine + API Key
 	# https://programmablesearchengine.google.com/controlpanel/all
+	jsonfile = "results/search.json"
 	API_KEY = google_api
 	CSE_ID = google_cse_id
-	QUERY = (f'Closest pizza to {city} + ,{region}')
+	QUERY = (f'Closest pizza to {city} {region}.')
 	results = search_google(API_KEY, CSE_ID, QUERY)
 	final = []
 
 	if results:
 		for item in results['items']:
 			final.append((item['title'], item['link']))
-		final = pd.DataFrame(final)
+		df = pd.DataFrame(final)
 		print(final)
+		df.to_json(jsonfile, orient='records', lines=True)
 		return final
 	else:
 		print("Error fetching results")
@@ -201,7 +203,7 @@ def icmp_main(my_pubic_addr):
 
 		df.to_json(jsonfile, orient='records', lines=True)
 		#Plot the Results
-		plot_ping()
+		#plot_ping()
 
 		# Return the DataFrame
 		return df
@@ -261,7 +263,7 @@ def web_load():
 
 def plot_ping():
 	# Read the JSON file
-	file_path = 'latency_results.json'  # Replace with your file path
+	file_path = 'results/latency_results.json'  # Replace with your file path
 	data = pd.read_json(file_path, lines=True)
 
 	# Extract round_trip_avg as it's nested in a list
@@ -288,7 +290,7 @@ def plot_ping():
 
 def plot_http():
 	# Read the JSON file
-	file_path = 'website.json'  # Replace with your file path
+	file_path = 'results/website.json'  # Replace with your file path
 	data = pd.read_json(file_path, lines=True)
 
 	# Extract round_trip_avg as it's nested in a list
@@ -329,14 +331,14 @@ def main():
 #Plot the Results
 	#plot_ping()
 #Obtain GeoLocation on IP
-	#where_am_i = geo_loc(my_pubic_addr)
+	where_am_i = geo_loc(my_pubic_addr)
 
 # City & Region
-	#city = where_am_i['city']
-	#region = where_am_i['region']
+	city = where_am_i['city']
+	region = where_am_i['region']
 
 # Run Google Query
-#	result_google(city, region)
+	result_google(city,region)
 
 # Plot Tests
 	#pingplot()
