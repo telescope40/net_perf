@@ -2,9 +2,10 @@ import json
 import matplotlib.pyplot as plt
 from geopy.distance import geodesic
 
-def pingplot():
+
+def ping_plot():
     # Read ping test results from the JSON file
-    with open("latency_results.json", "r") as json_file:
+    with open("../perf_mon/results/latency_results.json", "r") as json_file:
         ping_results = json.load(json_file)
 
     # Extract relevant data for plotting
@@ -23,21 +24,20 @@ def pingplot():
 
     # Create a scatter plot of ping results vs. distances
     plt.figure(figsize=(10, 6))
-    plt.scatter(distances, rtt_values, c='b', marker='o', label='Ping Results')
-    plt.xlabel('Distance (Kilometers)')
-    plt.ylabel('Round-Trip Time (ms)')
-    plt.title('Ping Test Results vs. Distance')
+    plt.scatter(distances, rtt_values, c="b", marker="o", label="Ping Results")
+    plt.xlabel("Distance (Kilometers)")
+    plt.ylabel("Round-Trip Time (ms)")
+    plt.title("Ping Test Results vs. Distance")
     plt.grid(True)
-    plt.savefig('pingplot.png', dpi=300)
+    plt.savefig("pingplot.png", dpi=300)
 
     # Annotate data points with host names
     for i, host in enumerate(ping_results):
         plt.annotate(host["host"], (distances[i], rtt_values[i]))
 
-
-
     plt.legend()
     plt.show()
 
+
 if __name__ == "__main__":
-	pingplot()
+    pingplot()
