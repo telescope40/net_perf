@@ -19,6 +19,9 @@ lint:
 
 directory:
 	mkdir -p results/
-	touch results/latency_results.json
+
+flake:
+	flake8 *.py --count --select=E9,F63,F7,F82 --show-source --statistics
+
 all:
-	setup install format lint
+	install format lint directory

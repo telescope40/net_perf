@@ -158,7 +158,7 @@ def icmp_main(my_pubic_addr):
         "server_name": [],  # server,
         "ip_address": [],  # host_2_ip,
         "distance": [],  # Distance to me
-        'ping':[],
+        "ping": [],
         "packet_loss": [],
         "round_trip_avg": [],
         "stddev": [],
@@ -194,7 +194,7 @@ def icmp_main(my_pubic_addr):
                 server_dict["stddev"].append(parsed_response["stddev"])
                 server_dict["max"].append(parsed_response["max"])
                 server_dict["min"].append(parsed_response["min"])
-                server_dict['ping'].append(parsed_response)
+                server_dict["ping"].append(parsed_response)
 
             except Exception as e:
                 print(f"Error processing server {server}: {e}")
@@ -219,7 +219,10 @@ def icmp_main(my_pubic_addr):
 def run_speedtest():
     try:
         jsonfile = "results/speedtest_results.json"
-        results = subprocess.run(["speedtest-cli", "--json", ">>", "results/speedtest_results.json"], check=True)
+        results = subprocess.run(
+            ["speedtest-cli", "--json", ">>", "results/speedtest_results.json"],
+            check=True,
+        )
         plot_speedtest(jsonfile)
         return results
     except ValueError as e:
@@ -337,8 +340,10 @@ def plot_ping():
     data = pd.read_json(file_path, lines=True)
 
     # Extract round_trip_avg as it's nested in a list
-#    data['round_trip_avg'] = data.ping.apply(lambda x: x[0][0]['round_trip_avg'] if x else None)
-    data['round_trip_avg'] = data.ping.apply(lambda x: x[0]['round_trip_avg'] if x else None)
+    #    data['round_trip_avg'] = data.ping.apply(lambda x: x[0][0]['round_trip_avg'] if x else None)
+    data["round_trip_avg"] = data.ping.apply(
+        lambda x: x[0]["round_trip_avg"] if x else None
+    )
 
     # Sort the DataFrame based on 'distance'
     data_sorted = data.sort_values(by="distance")
@@ -411,6 +416,7 @@ def main():
     #
     # # Run Google Query
     # result_google(city, region)
+
 
 if __name__ == "__main__":
     main()
