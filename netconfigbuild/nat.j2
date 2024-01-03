@@ -1,7 +1,0 @@
-
-{% for idata in info -%}
-/ip firewall nat add action=src-nat chain=to-public comment={{idata.comment}} src-address={{idata.private}} to-addresses={{idata.public}}
-/ip firewall nat add action=dst-nat chain=from-public comment={{idata.comment}} dst-address={{idata.public}} to-addresses={{idata.private}}
-/ip dns static add address={{idata.private}} name={{idata.comment}}
-/ip address set address={{idata.public}}/32 comment={{idata.comment}}
-{% endfor %}
