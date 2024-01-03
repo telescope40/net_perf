@@ -51,8 +51,8 @@ def parse_ping_output(output):
     data = {
         #'time': [],
         "host": [],
-        #'packets_transmitted': [],
-        #'packets_received': [],
+        "packets_transmitted": [],
+        "packets_received": [],
         "packet_loss": [],
         "round_trip_avg": [],
         "stddev": [],
@@ -85,7 +85,7 @@ def parse_ping_output(output):
             data["packet_loss"].append(packet_loss)
             data["round_trip_avg"].append(avg_rtt)
             data["stddev"].append(stddev)
-            data["percent"].append(percent)
+            # data["percent"].append(percent)
             data["max"].append(max_rtt)
             data["min"].append(min_rtt)
 
@@ -151,14 +151,14 @@ def geo_loc(ip):
 def icmp_main(my_pubic_addr):
     sourceFile = "../config/ping_servers.json"
     filename = "results/latency_results.csv"
-    jsonfile = "latency_results.json"
+    jsonfile = "results/latency_results.json"
     local = gps_location(my_pubic_addr)
 
     server_dict = {
         "server_name": [],  # server,
         "ip_address": [],  # host_2_ip,
         "distance": [],  # Distance to me
-        #'ping':[],
+        'ping':[],
         "packet_loss": [],
         "round_trip_avg": [],
         "stddev": [],
@@ -166,7 +166,7 @@ def icmp_main(my_pubic_addr):
         "min": [],
     }
     with open(sourceFile, "r", encoding="utf-8") as reader:
-        all_servers = json.load(reader, encoding="utf-8")
+        all_servers = json.load(reader)
         for server in all_servers:
             try:
                 # Resolve FQDN to IP
@@ -194,7 +194,7 @@ def icmp_main(my_pubic_addr):
                 server_dict["stddev"].append(parsed_response["stddev"])
                 server_dict["max"].append(parsed_response["max"])
                 server_dict["min"].append(parsed_response["min"])
-                # server_dict['ping'].append(parsed_response)
+                server_dict['ping'].append(parsed_response)
 
             except Exception as e:
                 print(f"Error processing server {server}: {e}")
@@ -202,9 +202,12 @@ def icmp_main(my_pubic_addr):
 
         # Format the Dictionary to Pandas DataFrame
         df = pd.DataFrame(server_dict)
-        df.to_csv(filename, mode="w+", header=True, index=False)
-
+        # create json
         df.to_json(jsonfile, orient="records", lines=True)
+        data = pd.read_json(jsonfile, lines=True)
+        # create csv
+        data.to_csv(filename, mode="w+", header=True, index=False)
+
         # Plot the Results
         # plot_ping()
 
@@ -215,15 +218,64 @@ def icmp_main(my_pubic_addr):
 # Speedtest Python
 def run_speedtest():
     try:
-        #st_result = os.system("speedtest-cli --json")
-        st_result = subprocess.run(["speedtest-cli", "--json"],  check=True)
-        return st_result
+        jsonfile = "results/speedtest_results.json"
+        results = subprocess.run(["speedtest-cli", "--json", ">>", "results/speedtest_results.json"], check=True)
+        plot_speedtest(jsonfile)
+        return results
     except ValueError as e:
         print("A ValueError occurred:", e)
         raise
     except TypeError as e:
         print("A TypeError occurred:", e)
         raise
+
+
+def plot_speedtest(resultsfile):
+    resultsfile = "results/speedtest_results.json"
+    with open(resultsfile, "r") as file:
+        timestamps = []
+        download_speeds = []
+        upload_speeds = []
+        latencies = []
+        for line in file:
+            data = json.loads(line)
+            # convert to Mbps <number> * 1e-6
+            dl_convert = data["download"] * 1e-6
+            up_convert = data["upload"] * 1e-6
+            download_speeds.append(round(dl_convert))
+            upload_speeds.append(round(up_convert))
+            latencies.append((data["ping"]))
+            timestamp = data["timestamp"]
+            timestamps.append(timestamp.split("T")[1][0:8])
+        plt.figure(figsize=(10, 6))
+        plt.plot(
+            timestamps, upload_speeds, marker="o", label="Upload (Mbps)", color="r"
+        )
+        plt.plot(
+            timestamps, download_speeds, marker="o", label="Download (Mbps)", color="b"
+        )
+        # Create a secondary y-axis for latency
+        ax2 = plt.gca().twinx()
+        ax2.plot(
+            timestamps,
+            latencies,
+            marker="x",
+            label="Latency (ms)",
+            color="g",
+            linestyle="--",
+        )
+        ax2.set_ylabel("Latency (ms)")
+        # Set labels and title
+        plt.title("Network Speed and Latency over Time")
+        plt.xlabel("Timestamp")
+        plt.ylabel("Speed (Mbps)")
+        plt.grid(True, which="both", linestyle="--", linewidth=0.5)
+        # Combine legends from both axes
+        lines, labels = plt.gca().get_legend_handles_labels()
+        lines2, labels2 = ax2.get_legend_handles_labels()
+        ax2.legend(lines + lines2, labels + labels2, loc=0)
+        plt.tight_layout()
+        plt.savefig("results/speedtest_graph.png", dpi=300)
 
 
 def web_load():
@@ -285,10 +337,8 @@ def plot_ping():
     data = pd.read_json(file_path, lines=True)
 
     # Extract round_trip_avg as it's nested in a list
-    # data['round_trip_avg'] = data['round_trip_avg'].apply(lambda x: x[0] if x else None)
-    data["round_trip_avg"] = data.ping.apply(
-        lambda x: x[0]["round_trip_avg"] if x else None
-    )
+#    data['round_trip_avg'] = data.ping.apply(lambda x: x[0][0]['round_trip_avg'] if x else None)
+    data['round_trip_avg'] = data.ping.apply(lambda x: x[0]['round_trip_avg'] if x else None)
 
     # Sort the DataFrame based on 'distance'
     data_sorted = data.sort_values(by="distance")
@@ -305,7 +355,7 @@ def plot_ping():
 
     # Show the plot
     plt.tight_layout()
-    plt.savefig("ping_graph.png", dpi=300)
+    plt.savefig("results/ping_graph.png", dpi=300)
     plt.show()
 
 
@@ -332,7 +382,7 @@ def plot_http():
 
     # Show the plot
     plt.tight_layout()
-    plt.savefig("ping_graph.png", dpi=300)
+    plt.savefig("results/website_graph.png", dpi=300)
     plt.show()
 
 
@@ -349,21 +399,18 @@ def main():
     # Servers , Get List from Config , DNS Lookup , PING
     icmp_main(my_pubic_addr)
 
-    # Plot the Results
-    # plot_ping()
-    # Obtain GeoLocation on IP
-    where_am_i = geo_loc(my_pubic_addr)
-
-    # City & Region
-    city = where_am_i["city"]
-    region = where_am_i["region"]
-
-    # Run Google Query
-    result_google(city, region)
-
     # Plot Tests
     plot_ping()
 
+    # Obtain GeoLocation on IP
+    # where_am_i = geo_loc(my_pubic_addr)
+    #
+    # # City & Region
+    # city = where_am_i["city"]
+    # region = where_am_i["region"]
+    #
+    # # Run Google Query
+    # result_google(city, region)
 
 if __name__ == "__main__":
     main()

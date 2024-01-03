@@ -17,5 +17,8 @@ format:
 lint:
 	pylint --disable=R,C *.py
 
+directory:
+	mkdir -p results/
+	touch results/latency_results.json
 all:
 	setup install format lint
