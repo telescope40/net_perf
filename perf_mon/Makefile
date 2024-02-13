@@ -24,4 +24,4 @@ flake:
 	flake8 *.py --count --select=E9,F63,F7,F82 --show-source --statistics
 
 all:
-	install format lint directory
+	install format lint

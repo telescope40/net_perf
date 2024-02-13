@@ -7,3 +7,5 @@ virtualenv .
 echo 'source ./bin/activate' >> ~/.bashrc
 # Activate the python virtual environment
 source ./bin/activate
+# Create Directory for the project
+mkdir -p results/

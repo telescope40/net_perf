@@ -2,14 +2,13 @@
 #!/python
 # Performance Measurement Script
 
-# Import Sensative Info
-# from config.config import google_api, google_cse_id
-
 # Import other Libraries
 import os
 import time
 import json
 import requests
+
+requests.packages.urllib3.disable_warnings()
 import subprocess
 import geoip2.database
 import pandas as pd
@@ -38,7 +37,7 @@ def ping_host(host):
 
 # MaxMing DB Lookup
 def gps_location(address):
-    path = "/Users/louis.devictoria/Desktop/MaxMind/GeoLite2-City.mmdb"
+    path = "../config/GeoLite2-City.mmdb"
     with geoip2.database.Reader(path) as reader:
         response = reader.city(address)
         gps = (response.location.latitude, response.location.longitude)
@@ -113,40 +112,6 @@ def geo_loc(ip):
     return get_location.json()
 
 
-# Create Google Search Function
-# def search_google(api_key, cse_id, query):
-#     url = "https://www.googleapis.com/customsearch/v1"
-#     params = {"key": api_key, "cx": cse_id, "q": query}
-#     response = requests.get(url, params=params, verify=False, timeout=5)
-#
-#     if response.status_code == 200:
-#         return response.json()
-#     else:
-#         return None
-#
-#
-# def result_google(city, region):
-#     # You did need to create a custom Programmable search engine + API Key
-#     # https://programmablesearchengine.google.com/controlpanel/all
-#     jsonfile = "results/search.json"
-#     API_KEY = google_api
-#     CSE_ID = google_cse_id
-#     QUERY = f"Closest pizza to {city} {region}."
-#     results = search_google(API_KEY, CSE_ID, QUERY)
-#     final = []
-#
-#     if results:
-#         for item in results["items"]:
-#             final.append((item["title"], item["link"]))
-#         df = pd.DataFrame(final)
-#         print(final)
-#         df.to_json(jsonfile, orient="records", lines=True)
-#         return final
-#     else:
-#         print("Error fetching results")
-#         return "Error fetching results"
-
-
 # Server IPs to GPS Mapping
 def icmp_main(my_pubic_addr):
     sourceFile = "../config/ping_servers.json"
@@ -209,22 +174,23 @@ def icmp_main(my_pubic_addr):
         data.to_csv(filename, mode="w+", header=True, index=False)
 
         # Plot the Results
-        # plot_ping()
+        plot_ping()
 
         # Return the DataFrame
-        return df
 
 
 # Speedtest Python
 def run_speedtest():
     try:
-        jsonfile = "results/speedtest_results.json"
         results = subprocess.run(
-            ["speedtest-cli", "--json", ">>", "results/speedtest_results.json"],
+            "speedtest-cli --json >> results/speedtest_results.json",
+            shell=True,
             check=True,
+            capture_output=True,
         )
+        jsonfile = "results/speedtest_results.json"
         plot_speedtest(jsonfile)
-        return results
+        return results.stdout
     except ValueError as e:
         print("A ValueError occurred:", e)
         raise
@@ -361,7 +327,8 @@ def plot_ping():
     # Show the plot
     plt.tight_layout()
     plt.savefig("results/ping_graph.png", dpi=300)
-    plt.show()
+    # plt.show()
+    return None
 
 
 def plot_http():
@@ -388,7 +355,8 @@ def plot_http():
     # Show the plot
     plt.tight_layout()
     plt.savefig("results/website_graph.png", dpi=300)
-    plt.show()
+    # plt.show()
+    return None
 
 
 def main():
@@ -403,19 +371,6 @@ def main():
 
     # Servers , Get List from Config , DNS Lookup , PING
     icmp_main(my_pubic_addr)
-
-    # Plot Tests
-    plot_ping()
-
-    # Obtain GeoLocation on IP
-    # where_am_i = geo_loc(my_pubic_addr)
-    #
-    # # City & Region
-    # city = where_am_i["city"]
-    # region = where_am_i["region"]
-    #
-    # # Run Google Query
-    # result_google(city, region)
 
 
 if __name__ == "__main__":
