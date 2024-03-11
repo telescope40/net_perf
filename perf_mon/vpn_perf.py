@@ -247,9 +247,9 @@ def web_load():
     filename = "results/website.csv"
     jsonfile = "results/website.json"
     all_sites = [
-        "http://edition.cnn.com",
-        "http://www.cloudflare.com",
-        "http://www.github.com",
+        "https://edition.cnn.com",
+        "https://www.cloudflare.com",
+        "https://www.github.com",
     ]
     # Log details
     log_details = {
@@ -368,6 +368,7 @@ def main():
     # Servers , Get List from Config , DNS Lookup , PING
     icmp_main(my_pubic_addr)
 
+    print(geo_loc(my_pubic_addr))
 
 if __name__ == "__main__":
     main()
