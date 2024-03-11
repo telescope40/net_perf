@@ -31,9 +31,16 @@ def convert_bytes(number):
 # Basic Ping Function
 def ping_host(host):
     # For UNIX & Linux
-    command = ["ping", "-c", "5", host]
-    return subprocess.run(command, capture_output=True, text=True, check=True).stdout
-
+        command = ["ping", "-c", "5", host]
+        try:
+            # Run the ping command
+            result = subprocess.run(command, capture_output=True, text=True, check=True)
+            # If ping is successful, return the standard output
+            return {"success": True, "output": result.stdout}
+        except subprocess.CalledProcessError as e:
+            # If ping fails (ICMP does not reply, host is unreachable, etc.)
+            # return the standard error output and indicate failure
+            return {"success": False, "output": e.stderr if e.stderr else e.stdout}
 
 # MaxMing DB Lookup
 def gps_location(address):
@@ -45,54 +52,43 @@ def gps_location(address):
 
 
 # Ping Parse Function
-def parse_ping_output(output):
+def parse_ping_output(output_dict):
+    # Extract the output string from the dictionary
+    output = output_dict['output']
     lines = output.splitlines()
     data = {
-        #'time': [],
-        "host": [],
-        "packets_transmitted": [],
-        "packets_received": [],
-        "packet_loss": [],
-        "round_trip_avg": [],
-        "stddev": [],
-        #'percent': [],
-        "max": [],
-        "min": [],
+        "host": None,
+        "packets_transmitted": None,
+        "packets_received": None,
+        "packet_loss": None,
+        "round_trip_min": None,
+        "round_trip_avg": None,
+        "round_trip_max": None,
+        "round_trip_mdev": None,
     }
 
     for line in lines:
         if "PING" in line:
-            host = line.split()[1]
+            data["host"] = line.split()[2].strip("()")
         elif "packets transmitted" in line:
-            packet_info = line.split(",")
-            packets_transmitted = float(packet_info[0].split()[0])
-            packets_received = float(packet_info[1].split()[0])
-            packet_loss = packet_info[2].split()[0]
-        elif "round-trip" in line:
-            rtt_info = line.split("/")
-            min_rtt = float(rtt_info[3].split("=")[1])
-            avg_rtt = float(rtt_info[4])
-            max_rtt = float(rtt_info[5])
-            stddev = float(rtt_info[6].split()[0])
-            percent = round((stddev / avg_rtt) * 100, 1)
+            packet_info = line.split(", ")
+            data["packets_transmitted"] = int(packet_info[0].split()[0])
+            data["packets_received"] = int(packet_info[1].split()[0])
+            data["packet_loss"] = packet_info[2].split()[0]
+        elif "min/avg/max/mdev" in line:
+            rtt_info = line.split("=")[1].split("/")
+            data["round_trip_min"] = float(rtt_info[0])
+            data["round_trip_avg"] = float(rtt_info[1])
+            data["round_trip_max"] = float(rtt_info[2])
+            data["round_trip_mdev"] = float(rtt_info[3].split()[0])
 
-            # Append to data
-            # data['time'].append(time)
-            data["host"].append(host)
-            data["packets_transmitted"].append(packets_transmitted)
-            data["packets_received"].append(packets_received)
-            data["packet_loss"].append(packet_loss)
-            data["round_trip_avg"].append(avg_rtt)
-            data["stddev"].append(stddev)
-            # data["percent"].append(percent)
-            data["max"].append(max_rtt)
-            data["min"].append(min_rtt)
+    # Since the structure expects lists but we have single values, we encapsulate values in lists to maintain consistency
+    for key in data:
+        data[key] = [data[key]]
 
     # Create DataFrame
     df = pd.DataFrame(data)
-    # df = pd.DataFrame.from_dict(data, orient='index')
     return df
-
 
 # API IP Query
 def get_pub_ip():
@@ -156,9 +152,9 @@ def icmp_main(my_pubic_addr):
                 server_dict["distance"].append(kilos)
                 server_dict["packet_loss"].append(parsed_response["packet_loss"])
                 server_dict["round_trip_avg"].append(parsed_response["round_trip_avg"])
-                server_dict["stddev"].append(parsed_response["stddev"])
-                server_dict["max"].append(parsed_response["max"])
-                server_dict["min"].append(parsed_response["min"])
+                server_dict["stddev"].append(parsed_response["round_trip_mdev"])
+                server_dict["max"].append(parsed_response["round_trip_max"])
+                server_dict["min"].append(parsed_response["round_trip_min"])
                 server_dict["ping"].append(parsed_response)
 
             except Exception as e:
@@ -364,7 +360,7 @@ def main():
     my_pubic_addr = get_pub_ip()
 
     # Perform Speedtest CLI
-    run_speedtest()
+    #run_speedtest()
 
     # Perform Webpage Transaction Loads
     web_load()
