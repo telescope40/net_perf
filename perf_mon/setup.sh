@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
+#Install pip
+apt install python3-pip -y
 # Install virtualenv
-pip install virtualenv
+pip install virtualenv -y
 #Create the Python Virtual Environment
 virtualenv .
 # Add to

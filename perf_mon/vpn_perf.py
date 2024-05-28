@@ -31,7 +31,7 @@ def convert_bytes(number):
 # Basic Ping Function
 def ping_host(host):
     # For UNIX & Linux
-        command = ["ping", "-c", "5", host]
+        command = ["ping", "-c", "50", host]
         try:
             # Run the ping command
             result = subprocess.run(command, capture_output=True, text=True, check=True)
@@ -297,34 +297,72 @@ def web_load():
 
 
 def plot_ping():
-    # Read the JSON file
-    file_path = "results/latency_results.json"  # Replace with your file path
-    data = pd.read_json(file_path, lines=True)
+        file_path = "results/latency_results.json"  # Replace with your file path
+        data = pd.read_json(file_path, lines=True)
 
-    # Extract round_trip_avg as it's nested in a list
-    #    data['round_trip_avg'] = data.ping.apply(lambda x: x[0][0]['round_trip_avg'] if x else None)
-    data["round_trip_avg"] = data.ping.apply(
-        lambda x: x[0]["round_trip_avg"] if x else None
-    )
+        # Extract round_trip_avg as it's nested in a list
+        data["round_trip_avg"] = data.ping.apply(
+            lambda x: x[0]["round_trip_avg"] if x else None
+        )
 
-    # Sort the DataFrame based on 'distance'
-    data_sorted = data.sort_values(by="distance")
+        # Create a relative time column based on the index
+        data['relative_time'] = (data.index - data.index[0])
 
-    # Create the bar chart
-    plt.figure(figsize=(12, 6))  # Adjust the figure size as needed
-    plt.bar(data_sorted["server_name"], data_sorted["round_trip_avg"], color="skyblue")
+        # Create a mask for missing ICMP responses
+        no_response_mask = data["round_trip_avg"].isna()
 
-    # Add labels and title
-    plt.xlabel("Server Name")
-    plt.ylabel("Round Trip Average (ms)")
-    plt.title("Round Trip Average by Server Name Sorted by Distance")
-    plt.xticks(rotation=45)  # Rotate the X-axis labels for better readability
+        # Plot the time series
+        plt.figure(figsize=(12, 6))  # Adjust the figure size as needed
 
-    # Show the plot
-    plt.tight_layout()
-    plt.savefig("results/ping_graph.png", dpi=300)
-    # plt.show()
-    return None
+        # Plot RTT over time
+        plt.plot(data["relative_time"], data["round_trip_avg"], marker='o', linestyle='-', color='skyblue',
+                 label='Round Trip Time')
+
+        # Highlight where ICMP did not respond
+        plt.plot(data["relative_time"][no_response_mask], data["round_trip_avg"][no_response_mask], 'ro',
+                 label='No Response')
+
+        # Add labels and title
+        plt.xlabel("Relative Time (seconds)")
+        plt.ylabel("Round Trip Time (ms)")
+        plt.title("Round Trip Time Over Relative Time")
+        plt.legend()
+
+        # Show the plot
+        plt.tight_layout()
+        plt.savefig("results/ping_time_series_graph.png", dpi=300)
+        # plt.show()
+        return None
+
+
+    # # Read the JSON file
+    # file_path = "results/latency_results.json"  # Replace with your file path
+    # data = pd.read_json(file_path, lines=True)
+    #
+    # # Extract round_trip_avg as it's nested in a list
+    # #    data['round_trip_avg'] = data.ping.apply(lambda x: x[0][0]['round_trip_avg'] if x else None)
+    # data["round_trip_avg"] = data.ping.apply(
+    #     lambda x: x[0]["round_trip_avg"] if x else None
+    # )
+    #
+    # # Sort the DataFrame based on 'distance'
+    # data_sorted = data.sort_values(by="distance")
+    #
+    # # Create the bar chart
+    # plt.figure(figsize=(12, 6))  # Adjust the figure size as needed
+    # plt.bar(data_sorted["server_name"], data_sorted["round_trip_avg"], color="skyblue")
+    #
+    # # Add labels and title
+    # plt.xlabel("Server Name")
+    # plt.ylabel("Round Trip Average (ms)")
+    # plt.title("Round Trip Average by Server Name Sorted by Distance")
+    # plt.xticks(rotation=45)  # Rotate the X-axis labels for better readability
+    #
+    # # Show the plot
+    # plt.tight_layout()
+    # plt.savefig("results/ping_graph.png", dpi=300)
+    # # plt.show()
+    # return None
 
 
 def plot_http():
@@ -363,12 +401,12 @@ def main():
     #run_speedtest()
 
     # Perform Webpage Transaction Loads
-    web_load()
+    #web_load()
 
     # Servers , Get List from Config , DNS Lookup , PING
     icmp_main(my_pubic_addr)
 
-    print(geo_loc(my_pubic_addr))
+    #print(geo_loc(my_pubic_addr))
 
 if __name__ == "__main__":
     main()
