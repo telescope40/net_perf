@@ -47,8 +47,10 @@ def gps_location(address):
     path = "../config/GeoLite2-City.mmdb"
     with geoip2.database.Reader(path) as reader:
         response = reader.city(address)
+        city = (response.city.name)
         gps = (response.location.latitude, response.location.longitude)
-        return gps
+        return city
+        #return gps
 
 
 # Ping Parse Function
@@ -406,7 +408,7 @@ def main():
     # Servers , Get List from Config , DNS Lookup , PING
     icmp_main(my_pubic_addr)
 
-    #print(geo_loc(my_pubic_addr))
+    print(geo_loc(my_pubic_addr))
 
 if __name__ == "__main__":
     main()
