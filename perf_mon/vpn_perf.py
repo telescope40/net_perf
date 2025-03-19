@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 from netutils import dns
 from haversine import haversine
 
+import argparse
 
 def convert_bytes(number):
     # number is bytes#
@@ -355,20 +356,28 @@ def plot_http():
     return None
 
 
-def main():
+def main(test_mode=False):
+
     # Get Public IP Address
     my_pubic_addr = get_pub_ip()
+  
+    if not test_mode:
+        # Perform Speedtest CLI
+        run_speedtest()
 
-    # Perform Speedtest CLI
-    #run_speedtest()
+        # Perform Webpage Transaction Loads
+        web_load()
 
-    # Perform Webpage Transaction Loads
-    web_load()
+        # Servers , Get List from Config , DNS Lookup , PING
+        icmp_main(my_pubic_addr)
 
-    # Servers , Get List from Config , DNS Lookup , PING
-    icmp_main(my_pubic_addr)
-
-    print(geo_loc(my_pubic_addr))
+        print(geo_loc(my_pubic_addr))
+    else:
+        web_load()
+        print(f"Test mode: Public IP is {my_pubic_addr}")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Network testing script")
+    parser.add_argument("--test", action="store_true", help="Run in test mode (only get public IP)")
+    args = parser.parse_args()
+    main(test_mode=args.test)
