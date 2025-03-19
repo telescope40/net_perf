@@ -33,6 +33,9 @@ python vpn_perf.py
   - there is csv and json version 
   - there is a graph of the results in the results/website/graphs directory
   
+##### Limitations 
+ping_servers.json servers must be publically resolvabe and inside the mmdb file since distance from the users to the destination is part of the script 
+
 ### Images
 ![img_1.png](img_1.png)
 
